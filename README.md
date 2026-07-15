@@ -12,6 +12,9 @@ A lightweight lead capture form, a real-time internal tracking dashboard, and th
 ## Architecture
 
 - **`client/`** — React app (Vite dev server, port `5173` by default). Two views, no router library: `/` renders the public `LeadForm`, `/dashboard` renders the internal `Dashboard`. They are fully decoupled — the dashboard never reads form state directly; it only learns about new leads via the WebSocket broadcast from the backend.
+  Form: http://localhost:5173/
+  Dashboard: http://localhost:5173/dashboard
+
 - **`server/`** — Node + Express, single process. Serves the REST API and a `ws` WebSocket server on the same HTTP server/port.
 
 ```
@@ -42,6 +45,7 @@ client/src/
 Two separate processes, both required, in separate terminals:
 
 **Backend** (port `8080`):
+
 ```
 cd server
 npm install
@@ -49,6 +53,7 @@ npm start
 ```
 
 **Frontend** (port `5173` by default):
+
 ```
 cd client
 npm install
@@ -61,11 +66,11 @@ Open `http://localhost:5173/` for the lead form, and `http://localhost:5173/dash
 
 The form only collects a budget **bucket**, not an exact figure, so the dashboard's "Estimated Pipeline Value" badge is a **range**, computed by summing each lead's bucket bounds (`server/src/constants/budget.js`, mirrored in `client/src/constants/budget.js`):
 
-| Bucket key | Form label | Min | Max |
-|---|---|---|---|
-| `UNDER_10K` | Under $10k | $0 | $10,000 |
-| `BETWEEN_10K_50K` | $10k-$50k | $10,000 | $50,000 |
-| `OVER_50K` | Greater than $50k | $50,000 | $100,000 |
+| Bucket key        | Form label        | Min     | Max      |
+| ----------------- | ----------------- | ------- | -------- |
+| `UNDER_10K`       | Under $10k        | $0      | $10,000  |
+| `BETWEEN_10K_50K` | $10k-$50k         | $10,000 | $50,000  |
+| `OVER_50K`        | Greater than $50k | $50,000 | $100,000 |
 
 The `$100,000` ceiling for the open-ended "Greater than $50k" bucket is an assumed representative upper bound, not a hard limit collected from the form.
 
