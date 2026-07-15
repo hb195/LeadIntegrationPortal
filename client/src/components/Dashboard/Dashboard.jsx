@@ -37,9 +37,13 @@ function Dashboard() {
     }
 
     function openSocket() {
-      socketRef.current = connectSocket({
+      // Captured by reference so stale callbacks (from a socket that has
+      // since been superseded, e.g. by React StrictMode's mount/cleanup/
+      // remount cycle) can detect they're stale and no-op instead of acting
+      // on behalf of a connection that's no longer the active one.
+      const socket = connectSocket({
         onOpen: () => {
-          if (!isMountedRef.current) return;
+          if (!isMountedRef.current || socketRef.current !== socket) return;
           setIsConnected(true);
 
           // Re-fetch on every reconnect (not the first connection, which the
@@ -51,16 +55,19 @@ function Dashboard() {
           hasConnectedOnceRef.current = true;
         },
         onMessage: (message) => {
+          if (socketRef.current !== socket) return;
           if (message.type === 'lead_created') {
             setLeads((prev) => [...prev, message.data]);
           }
         },
         onClose: () => {
-          if (!isMountedRef.current) return;
+          if (!isMountedRef.current || socketRef.current !== socket) return;
           setIsConnected(false);
           reconnectTimeoutRef.current = setTimeout(openSocket, RECONNECT_DELAY_MS);
         },
       });
+
+      socketRef.current = socket;
     }
 
     loadLeads();
